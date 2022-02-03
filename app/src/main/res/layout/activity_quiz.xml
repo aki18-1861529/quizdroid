@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="50dp"
+    tools:context=".Quiz">
+
+    <TextView
+        android:id="@+id/question"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingLeft="5sp"
+        android:text="Question 1"
+        android:textSize="24sp"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:layout_editor_absoluteY="166dp" />
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="3dp"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/question">
+
+        <RadioGroup
+            android:id="@+id/radioGroup"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <RadioButton
+                android:id="@+id/a1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Answer 1" />
+
+            <RadioButton
+                android:id="@+id/a2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Answer 2"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <RadioButton
+                android:id="@+id/a3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Answer 3" />
+
+            <RadioButton
+                android:id="@+id/a4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Answer 4" />
+        </RadioGroup>
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/submitBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Submit"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
