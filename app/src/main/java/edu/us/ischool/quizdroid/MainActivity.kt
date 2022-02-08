@@ -26,9 +26,7 @@ class MainActivity : AppCompatActivity() {
         val listView = findViewById<ListView>(R.id.listView)
 
         val allTopics = repo.getAllTopics()
-        val topicTitles = allTopics.map { it.title }
 
-//        arrayAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, topicTitles)
         val adapter = TopicAdapter(this, allTopics)
         listView.adapter = adapter
         listView.setOnItemClickListener { parent, view, pos, id ->
