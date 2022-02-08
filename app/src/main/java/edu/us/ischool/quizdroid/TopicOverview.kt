@@ -21,7 +21,7 @@ class TopicOverview : AppCompatActivity() {
         val info = repo.getTopic(topic)
 
         findViewById<TextView>(R.id.textView2).text = info.title
-        findViewById<TextView>(R.id.textView3).text = info.shortDesc
+        findViewById<TextView>(R.id.textView3).text = info.longDesc
         findViewById<TextView>(R.id.textView4).text = info.questions.size.toString() + " Questions"
 
         val beginBtn = findViewById<Button>(R.id.button)
