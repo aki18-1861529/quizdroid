@@ -3,6 +3,7 @@
     package="edu.us.ischool.quizdroid">
 
     <application
+        android:name=".QuizApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -13,7 +14,7 @@
             android:name=".Answer"
             android:exported="false" />
         <activity
-            android:name=".Quiz"
+            android:name=".QuizPage"
             android:exported="false"
             android:parentActivityName=".MainActivity" />
         <activity
