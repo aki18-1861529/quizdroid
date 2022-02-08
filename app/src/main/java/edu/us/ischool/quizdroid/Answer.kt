@@ -6,10 +6,13 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
 
-class Answer : AppCompatActivity(), TopicRepository {
+class Answer : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_answer)
+
+        val quizApp = QuizApp()
+        val repo : TopicRepository = quizApp.getTopicRepository()
 
         val bundle = intent.getBundleExtra("bundle") as Bundle
         val actual = findViewById<TextView>(R.id.actualAnswer)
@@ -17,7 +20,7 @@ class Answer : AppCompatActivity(), TopicRepository {
         val score = findViewById<TextView>(R.id.score)
         val btn = findViewById<Button>(R.id.button2)
 
-        val quiz = getQuiz(bundle.getInt("question"))
+        val quiz = repo.getQuiz(bundle.getInt("question"))
         val ans =  when (quiz.correct) {
                 1 -> quiz.a1
                 2 -> quiz.a2

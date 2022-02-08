@@ -6,7 +6,7 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
 
-class TopicOverview : AppCompatActivity(), TopicRepository {
+class TopicOverview : AppCompatActivity() {
 
     private val EXTRA_TOPIC = "edu.us.ischool.quizdroid.TOPIC"
 
@@ -14,8 +14,11 @@ class TopicOverview : AppCompatActivity(), TopicRepository {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_topic_overview)
 
+        val quizApp = QuizApp()
+        val repo : TopicRepository = quizApp.getTopicRepository()
+
         val topic = intent.getIntExtra(EXTRA_TOPIC, 0)
-        val info = getTopic(topic)
+        val info = repo.getTopic(topic)
 
         findViewById<TextView>(R.id.textView2).text = info.title
         findViewById<TextView>(R.id.textView3).text = info.shortDesc

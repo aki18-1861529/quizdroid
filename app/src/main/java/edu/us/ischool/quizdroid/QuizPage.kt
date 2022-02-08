@@ -9,16 +9,19 @@ import android.widget.RadioGroup
 import android.widget.TextView
 import androidx.core.view.isVisible
 
-class QuizPage : AppCompatActivity(), TopicRepository {
+class QuizPage : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_quiz)
 
+        val quizApp = QuizApp()
+        val repo : TopicRepository = quizApp.getTopicRepository()
+
         val bundle : Bundle = intent.getBundleExtra("bundle") as Bundle
         val q : Int = bundle.getInt("question")
         val qIdx : Int = q - 1
-        val quiz = getQuiz(qIdx)
+        val quiz = repo.getQuiz(qIdx)
 
         val question = findViewById<TextView>(R.id.question)
         val a1 = findViewById<TextView>(R.id.a1)

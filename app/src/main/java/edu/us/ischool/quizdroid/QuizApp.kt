@@ -9,4 +9,8 @@ class QuizApp : Application() {
         super.onCreate()
         Log.i("QuizApp", "onCreate loaded and running")
     }
+
+    fun getTopicRepository(): TopicRepository {
+        return MemoryTopicRepository()
+    }
 }
