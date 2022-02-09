@@ -10,7 +10,7 @@ class MemoryTopicRepository() : TopicRepository {
     lateinit var topics : Array<Topic>
 
     override val externalFile : String
-        get() = File("/sdcard/Download/data/questions.json").readText()
+        get() = File("/data/local/tmp/questions.json").readText()
 
     override val topicType: Type
         get() = object : TypeToken<Array<Topic>>() {}.type
