@@ -8,8 +8,6 @@ import android.widget.TextView
 
 class TopicOverview : AppCompatActivity() {
 
-    private val EXTRA_TOPIC = "edu.us.ischool.quizdroid.TOPIC"
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_topic_overview)
@@ -17,15 +15,20 @@ class TopicOverview : AppCompatActivity() {
         val quizApp = QuizApp()
         val repo : TopicRepository = quizApp.getTopicRepository()
 
-        val topic = intent.getIntExtra(EXTRA_TOPIC, 0)
+        val topic = intent.getIntExtra("topic", 0)
         val info = repo.getTopic(topic)
 
         findViewById<TextView>(R.id.textView2).text = info.title
-        findViewById<TextView>(R.id.textView3).text = info.longDesc
-        findViewById<TextView>(R.id.textView4).text = info.questions.size.toString() + " Questions"
+        findViewById<TextView>(R.id.textView3).text = info.desc
+        findViewById<TextView>(R.id.textView4).text = if (info.questions.size == 1) {
+            info.questions.size.toString() + " Question"
+        } else {
+            info.questions.size.toString() + " Questions"
+        }
 
         val beginBtn = findViewById<Button>(R.id.button)
         val bundle = Bundle()
+        bundle.putInt("topic", topic)
         bundle.putString("answer", "")
         bundle.putInt("correct", 0)
         bundle.putInt("score", 0)

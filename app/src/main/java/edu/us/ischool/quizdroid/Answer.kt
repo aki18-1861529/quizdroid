@@ -20,12 +20,13 @@ class Answer : AppCompatActivity() {
         val score = findViewById<TextView>(R.id.score)
         val btn = findViewById<Button>(R.id.button2)
 
-        val quiz = repo.getQuiz(bundle.getInt("question"))
-        val ans =  when (quiz.correct) {
-                1 -> quiz.a1
-                2 -> quiz.a2
-                3 -> quiz.a3
-                4 -> quiz.a4
+        val qIdx = bundle.getInt("question") - 1
+        val quiz = repo.getQuiz(bundle.getInt("topic"), qIdx)
+        val ans =  when (quiz.answer) {
+                1 -> quiz.answers[0]
+                2 -> quiz.answers[1]
+                3 -> quiz.answers[2]
+                4 -> quiz.answers[3]
                 else -> ""
         }
 
@@ -36,9 +37,9 @@ class Answer : AppCompatActivity() {
         } else {
             bundle.getInt("score")
         }
-        score.text = "You have " + newScore.toString() + " out of " + bundle.getInt("questionMax") + " correct"
+        score.text = "You have " + newScore.toString() + " out of " + bundle.getInt("question") + " correct"
 
-        if (bundle.getInt("question") + 1 == bundle.getInt("questionMax")) {
+        if (bundle.getInt("question") == bundle.getInt("questionMax")) {
             btn.text = "Finish"
         } else {
             btn.text = "Next"
@@ -46,10 +47,9 @@ class Answer : AppCompatActivity() {
         btn.setOnClickListener {
             if (btn.text == "Next") {
                 val bundle2 = Bundle()
+                bundle2.putInt("topic", bundle.getInt("topic"))
                 bundle2.putInt("score", 0)
-
-                val qIdx = bundle.getInt("question") + 1
-                bundle2.putInt("question", qIdx + 1)
+                bundle2.putInt("question", bundle.getInt("question") + 1)
                 bundle2.putInt("questionMax", bundle.getInt("questionMax"))
                 bundle2.putInt("score", newScore)
                 val intent = Intent(this, QuizPage::class.java).putExtra("bundle", bundle2)

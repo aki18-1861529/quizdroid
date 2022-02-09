@@ -1,69 +1,47 @@
 package edu.us.ischool.quizdroid
 
 import android.util.Log
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import java.io.File
+import java.lang.reflect.Type
 
-class MemoryTopicRepository : TopicRepository {
-    private val topics: Array<String>
-        get() = arrayOf(
-            "Math",
-            "Physics",
-            "Marvel Super Heroes"
-        )
+class MemoryTopicRepository() : TopicRepository {
+    lateinit var topics : Array<Topic>
 
-    private val shortDesc: Array<String>
-        get() = arrayOf(
-            "Brief description of Math",
-            "Brief description of Physics",
-            "Brief description of Marvel Super Heroes"
-        )
+    override val externalFile : String
+        get() = File("/sdcard/Download/data/questions.json").readText()
 
-    private val longDesc: Array<String>
-        get() = arrayOf(
-            "Long description of Math",
-            "Long description of Physics",
-            "Long description of Marvel Super Heroes"
-        )
+    override val topicType: Type
+        get() = object : TypeToken<Array<Topic>>() {}.type
 
-    private val questions : Array<Question>
-        get() = arrayOf(
-            Question("Question 1", "Answer 1", "Answer 2", "Answer 3", "Answer 4", 1),
-            Question("Question 2", "Answer 1", "Answer 2", "Answer 3", "Answer 4", 2),
-            Question("Question 3", "Answer 1", "Answer 2", "Answer 3", "Answer 4", 3),
-            Question("Question 4", "Answer 1", "Answer 2", "Answer 3", "Answer 4", 4),
-            Question("Question 5", "Answer 1", "Answer 2", "Answer 3", "Answer 4", 4),
-            Question("Question 6", "Answer 1", "Answer 2", "Answer 3", "Answer 4", 3),
-            Question("Question 7", "Answer 1", "Answer 2", "Answer 3", "Answer 4", 2),
-            Question("Question 8", "Answer 1", "Answer 2", "Answer 3", "Answer 4", 1),
-            Question("Question 9", "Answer 1", "Answer 2", "Answer 3", "Answer 4", 2)
-        )
+    override val data: Array<Topic>
+        get() = Gson().fromJson(externalFile, topicType)
 
     override fun getAllTopics() : Array<Topic> {
+        // data.forEachIndexed { idx, data -> Log.i("Topic", "> Item $idx:\n${data.title}") }
         val topicArr : MutableList<Topic> = mutableListOf()
-        for (i in topics.indices) {
-            topicArr.add(Topic(topics[i], shortDesc[i], longDesc[i], questions))
+        for (i in data.indices) {
+            val questions = data[i].questions.map { Quiz(it.text, it.answer, it.answers) }
+            topicArr.add(Topic(data[i].title, data[i].desc, questions.toTypedArray()))
         }
+        topics = topicArr.toTypedArray()
         Log.i("Topics", topicArr.toTypedArray().toString())
-        return topicArr.toTypedArray()
+        return topics
     }
 
     override fun getTopic(i : Int) : Topic {
-        return Topic (
-            topics[i],
-            shortDesc[i],
-            longDesc[i],
-            questions
-        )
+        return data[i]
     }
 
-    override fun getQuiz(i : Int) : Quiz {
-        return Quiz (
-            questions[i].q,
-            questions[i].a1,
-            questions[i].a2,
-            questions[i].a3,
-            questions[i].a4,
-            questions[i].correct
-        )
+    override fun getAllQuizzes(i: Int): Array<Quiz> {
+        val questions = data[i].questions.map { Quiz(it.text, it.answer, it.answers) }
+        return questions.toTypedArray()
+    }
+
+    override fun getQuiz(q: Int, i : Int) : Quiz {
+        val questions = data[q].questions.map { Quiz(it.text, it.answer, it.answers) }
+        return questions[i]
     }
 
     override fun addTopic(t: Topic): Array<Topic>? {
@@ -89,5 +67,4 @@ class MemoryTopicRepository : TopicRepository {
     override fun updateQuiz(q: Quiz): Quiz? {
         return null
     }
-
 }

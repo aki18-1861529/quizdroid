@@ -1,6 +1,14 @@
 package edu.us.ischool.quizdroid
 
+import android.content.Context
+import java.lang.reflect.Type
+
 interface TopicRepository {
+
+    val externalFile : String
+    val topicType: Type
+    val data: Array<Topic>
+
     // Create
     fun addTopic(t : Topic) : Array<Topic>?
     fun addQuiz(q : Quiz) : Array<Question>?
@@ -8,7 +16,8 @@ interface TopicRepository {
     // Retrieve
     fun getAllTopics() : Array<Topic>
     fun getTopic(i : Int) : Topic
-    fun getQuiz(i : Int) : Quiz
+    fun getAllQuizzes(i : Int) : Array<Quiz>
+    fun getQuiz(q : Int, i : Int) : Quiz
 
     // Update
     fun updateTopic(t : Topic) : Topic?
@@ -21,16 +30,12 @@ interface TopicRepository {
 
 class Topic (
     val title: String,
-    val shortDesc: String,
-    val longDesc: String,
-    val questions: Array<Question>
+    val desc: String,
+    val questions: Array<Quiz>
 )
 
 class Quiz (
-    val question: String,
-    val a1: String,
-    val a2: String,
-    val a3: String,
-    val a4: String,
-    val correct: Int
+    val text: String,
+    val answer: Int,
+    val answers: Array<String>
 )
