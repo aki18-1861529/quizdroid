@@ -15,6 +15,10 @@ class QuizPage : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_quiz)
 
+        setSupportActionBar(findViewById(R.id.toolbar))
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowHomeEnabled(true)
+
         val quizApp = QuizApp()
         val repo : TopicRepository = quizApp.getTopicRepository()
 

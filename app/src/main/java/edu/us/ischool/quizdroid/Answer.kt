@@ -11,6 +11,8 @@ class Answer : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_answer)
 
+        setSupportActionBar(findViewById(R.id.toolbar))
+
         val quizApp = QuizApp()
         val repo : TopicRepository = quizApp.getTopicRepository()
 

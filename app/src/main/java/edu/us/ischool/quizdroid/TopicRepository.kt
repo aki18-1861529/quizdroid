@@ -1,6 +1,5 @@
 package edu.us.ischool.quizdroid
 
-import android.content.Context
 import java.lang.reflect.Type
 
 interface TopicRepository {

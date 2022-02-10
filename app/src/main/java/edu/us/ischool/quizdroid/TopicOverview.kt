@@ -12,6 +12,10 @@ class TopicOverview : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_topic_overview)
 
+        setSupportActionBar(findViewById(R.id.toolbar))
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowHomeEnabled(true)
+
         val quizApp = QuizApp()
         val repo : TopicRepository = quizApp.getTopicRepository()
 

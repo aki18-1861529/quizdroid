@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">QuizDroid</string>
     <string name="begin">Begin</string>
+    <string name="preferences">Preferences</string>
 </resources>
