@@ -25,7 +25,7 @@ class Preferences : AppCompatActivity() {
             url.text = sharedPreference.getString("URL", "")
         }
         if (sharedPreference.getInt("downloadTime", 0) != 0) {
-            time.text = sharedPreference.getInt("downloadTime", 0).toString()
+            time.text = sharedPreference.getInt("downloadTime", 1).toString()
         }
 
         val saveBtn = findViewById<Button>(R.id.saveBtn)
@@ -34,7 +34,7 @@ class Preferences : AppCompatActivity() {
             editor.putInt("downloadTime",time.text.toString().toInt())
             editor.commit()
             Log.i("Preferences", "Preference saved!")
-            Toast.makeText(this, "Preferences saved!\n ${url.text} \n ${time.text}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Preferences saved!", Toast.LENGTH_SHORT).show()
         }
     }
 }

@@ -1,6 +1,5 @@
 package edu.us.ischool.quizdroid
 
-import android.app.Activity
 import android.app.AlarmManager
 import android.app.AlertDialog
 import android.app.PendingIntent
@@ -24,6 +23,8 @@ import kotlin.concurrent.thread
 
 lateinit var alarmManager : AlarmManager
 private lateinit var pendingIntent : PendingIntent
+lateinit var sharedPreference : SharedPreferences
+var url = ""
 var time = 0
 
 class IntentListener : BroadcastReceiver() {
@@ -31,8 +32,14 @@ class IntentListener : BroadcastReceiver() {
         Log.i("BroadcastReceiver", "Created BroadcastReceiver")
     }
     override fun onReceive(p0: Context?, p1: Intent?) {
-        Toast.makeText(p0, "${p1?.getStringExtra("url")}", Toast.LENGTH_LONG).show()
-        Log.i("BroadcastReceiver", "${p1?.getStringExtra("url")}   $time")
+        if (sharedPreference.getString("URL", "") != "") {
+            url = sharedPreference.getString("URL", "") as String
+        }
+        if (sharedPreference.getInt("downloadTime", 1) != 0) {
+            time = sharedPreference.getInt("downloadTime", 1) * 1000 * 60
+        }
+        Toast.makeText(p0, url, Toast.LENGTH_LONG).show()
+        Log.i("BroadcastReceiver", "$url   $time")
 
         val airplaneModeStatus = Settings.Global.getInt(p0?.contentResolver, Settings.Global.AIRPLANE_MODE_ON, 0)
         Log.i("BroadcastReceiver", airplaneModeStatus.toString())
@@ -42,23 +49,34 @@ class IntentListener : BroadcastReceiver() {
 
         // Airplane mode on = 1
         // Airplane mode off = 0
+        val failed = false
         if (airplaneModeStatus == 0 && connectionStatus) {
             thread {
-                val server = URL("http://tednewardsandbox.site44.com/questions.json")
-                val client: HttpURLConnection = server.openConnection() as HttpURLConnection
-                client.requestMethod = "GET"
+                var result : BufferedReader? = null
+                try {
+                    val server = URL(url)
+                    val client: HttpURLConnection = server.openConnection() as HttpURLConnection
+                    client.requestMethod = "GET"
 
-                val result = BufferedReader(InputStreamReader(client.inputStream))
-                var inputLine: String?
-                while (result.readLine().also { inputLine = it } != null)
-                    Log.i("BroadcastReceiver", inputLine!!)
-                result.close()
+                    result = BufferedReader(InputStreamReader(client.inputStream))
+                    var inputLine: String?
+                    while (result.readLine().also { inputLine = it } != null)
+                        Log.i("BroadcastReceiver", inputLine!!)
+                    result.close()
+                    alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + time, pendingIntent)
+
+                } catch (e : Exception) {
+                    Log.i("BroadcastReceiver", "Exception $e")
+                    val intent = Intent(p0, DownloadFailedDialog::class.java)
+                    p0?.startActivity(intent)
+                } finally {
+                    result?.close()
+                }
             }
         } else {
             Log.e("QuizApp", "No internet connection")
+            alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + time, pendingIntent)
         }
-
-        alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + time, pendingIntent)
     }
 
     private fun checkForInternet(context: Context?): Boolean {
@@ -86,16 +104,17 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(findViewById(R.id.toolbar))
 
         if (Settings.Global.getInt(contentResolver, Settings.Global.AIRPLANE_MODE_ON, 0) == 1) {
-            airplaneMode(this)
+            val intent = Intent(this, AirplaneModeDialog::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
+            startActivity(intent)
         }
 
-        val sharedPreference =  getSharedPreferences("DOWNLOAD_PREFERENCE", MODE_PRIVATE)
-        var url = ""
+        sharedPreference =  getSharedPreferences("DOWNLOAD_PREFERENCE", MODE_PRIVATE)
         if (sharedPreference.getString("URL", "") != "") {
             url = sharedPreference.getString("URL", "") as String
         }
-        if (sharedPreference.getInt("downloadTime", 0) != 0) {
-            time = sharedPreference.getInt("downloadTime", 0) * 1000 * 60
+        if (sharedPreference.getInt("downloadTime", 1) != 0) {
+            time = sharedPreference.getInt("downloadTime", 1) * 1000 * 60
         }
 
         alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
@@ -104,7 +123,7 @@ class MainActivity : AppCompatActivity() {
         intent.putExtra("time", time)
         pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT)
         alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + time, pendingIntent)
-        Log.i("BroadcastReceiver", "Set alarm")
+        Log.i("BroadcastReceiver", "Set download timer")
 
         val quizApp = QuizApp()
         val repo : TopicRepository = quizApp.getTopicRepository()
@@ -144,18 +163,9 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         if (Settings.Global.getInt(contentResolver, Settings.Global.AIRPLANE_MODE_ON, 0) == 1) {
-            airplaneMode(this)
+            val intent = Intent(this, AirplaneModeDialog::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
+            startActivity(intent)
         }
     }
-}
-
-private fun airplaneMode(context: Context?) {
-    val alertDialogBuilder = AlertDialog.Builder(context)
-    alertDialogBuilder.setTitle("Airplane Mode On")
-    alertDialogBuilder.setMessage("Airplane mode is on. Would you like to go to settings to turn airplane mode off?")
-    alertDialogBuilder.setPositiveButton("Settings") { _: DialogInterface, _: Int -> context?.startActivity(Intent(Settings.ACTION_SETTINGS)) }
-    alertDialogBuilder.setNegativeButton("Cancel") { _: DialogInterface, _: Int -> }
-
-    val alertDialog = alertDialogBuilder.create()
-    alertDialog.show()
 }
