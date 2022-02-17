@@ -15,12 +15,8 @@ import android.widget.ListView
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import java.io.BufferedReader
 import java.io.FileOutputStream
-import java.io.InputStreamReader
-import java.net.HttpURLConnection
 import java.net.URL
 import kotlin.concurrent.thread
 
@@ -54,27 +50,30 @@ class IntentListener : BroadcastReceiver() {
 
         // Airplane mode on = 1
         // Airplane mode off = 0
-        val failed = false
         if (airplaneModeStatus == 0 && connectionStatus) {
             var result : BufferedReader? = null
-            try {
-                // GlobalScope.launch {
-                    var resultString : String = URL(url).readText()
+            thread {
+                try {
+                    var resultString: String = URL(url).readText()
                     Log.i("BroadcastReceiver", resultString)
                     if (p0 != null && resultString != null) {
                         fileOutputStream = p0.openFileOutput(fileName, Context.MODE_PRIVATE)
                         fileOutputStream.write(resultString.toByteArray())
                         fileOutputStream.close()
                     }
-                // }
-                alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + time, pendingIntent)
+                    alarmManager.set(
+                        AlarmManager.RTC_WAKEUP,
+                        System.currentTimeMillis() + time,
+                        pendingIntent
+                    )
 
-            } catch (e : Exception) {
-                Log.e("QuizApp", e.toString())
-                val intent = Intent(p0, DownloadFailedDialog::class.java)
-                p0?.startActivity(intent)
-            } finally {
-                result?.close()
+                } catch (e: Exception) {
+                    Log.e("QuizApp", e.toString())
+                    val intent = Intent(p0, DownloadFailedDialog::class.java)
+                    p0?.startActivity(intent)
+                } finally {
+                    result?.close()
+                }
             }
         } else if (airplaneModeStatus == 1) {
             Log.i("BroadcastReceiver", "Airplane mode alert dialog")

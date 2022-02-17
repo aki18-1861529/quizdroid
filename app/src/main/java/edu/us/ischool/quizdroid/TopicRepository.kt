@@ -4,7 +4,9 @@ import java.lang.reflect.Type
 
 interface TopicRepository {
 
+    val externalFile : String
     val topicType: Type
+    val data : Array<Topic>
 
     // Create
     fun addTopic(t : Topic) : Array<Topic>?
