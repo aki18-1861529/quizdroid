@@ -14,7 +14,7 @@ class Answer : AppCompatActivity() {
         setSupportActionBar(findViewById(R.id.toolbar))
 
         val quizApp = QuizApp()
-        val repo : TopicRepository = quizApp.getTopicRepository()
+        val repo : TopicRepository = quizApp.getTopicRepository(this)
 
         val bundle = intent.getBundleExtra("bundle") as Bundle
         val actual = findViewById<TextView>(R.id.actualAnswer)

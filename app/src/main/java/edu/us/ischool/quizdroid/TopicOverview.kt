@@ -17,7 +17,7 @@ class TopicOverview : AppCompatActivity() {
         supportActionBar?.setDisplayShowHomeEnabled(true)
 
         val quizApp = QuizApp()
-        val repo : TopicRepository = quizApp.getTopicRepository()
+        val repo : TopicRepository = quizApp.getTopicRepository(this)
 
         val topic = intent.getIntExtra("topic", 0)
         val info = repo.getTopic(topic)

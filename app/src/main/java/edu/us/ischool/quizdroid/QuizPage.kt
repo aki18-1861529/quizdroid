@@ -20,7 +20,7 @@ class QuizPage : AppCompatActivity() {
         supportActionBar?.setDisplayShowHomeEnabled(true)
 
         val quizApp = QuizApp()
-        val repo : TopicRepository = quizApp.getTopicRepository()
+        val repo : TopicRepository = quizApp.getTopicRepository(this)
 
         val bundle : Bundle = intent.getBundleExtra("bundle") as Bundle
         val q : Int = bundle.getInt("topic")

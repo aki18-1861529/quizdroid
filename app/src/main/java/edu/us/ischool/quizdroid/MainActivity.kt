@@ -15,7 +15,10 @@ import android.widget.ListView
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.io.BufferedReader
+import java.io.FileOutputStream
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
@@ -24,8 +27,10 @@ import kotlin.concurrent.thread
 lateinit var alarmManager : AlarmManager
 private lateinit var pendingIntent : PendingIntent
 lateinit var sharedPreference : SharedPreferences
+lateinit var fileOutputStream : FileOutputStream
 var url = ""
 var time = 0
+val fileName = "questions.json"
 
 class IntentListener : BroadcastReceiver() {
     init {
@@ -51,28 +56,30 @@ class IntentListener : BroadcastReceiver() {
         // Airplane mode off = 0
         val failed = false
         if (airplaneModeStatus == 0 && connectionStatus) {
-            thread {
-                var result : BufferedReader? = null
-                try {
-                    val server = URL(url)
-                    val client: HttpURLConnection = server.openConnection() as HttpURLConnection
-                    client.requestMethod = "GET"
+            var result : BufferedReader? = null
+            try {
+                // GlobalScope.launch {
+                    var resultString : String = URL(url).readText()
+                    Log.i("BroadcastReceiver", resultString)
+                    if (p0 != null && resultString != null) {
+                        fileOutputStream = p0.openFileOutput(fileName, Context.MODE_PRIVATE)
+                        fileOutputStream.write(resultString.toByteArray())
+                        fileOutputStream.close()
+                    }
+                // }
+                alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + time, pendingIntent)
 
-                    result = BufferedReader(InputStreamReader(client.inputStream))
-                    var inputLine: String?
-                    while (result.readLine().also { inputLine = it } != null)
-                        Log.i("BroadcastReceiver", inputLine!!)
-                    result.close()
-                    alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + time, pendingIntent)
-
-                } catch (e : Exception) {
-                    Log.i("BroadcastReceiver", "Exception $e")
-                    val intent = Intent(p0, DownloadFailedDialog::class.java)
-                    p0?.startActivity(intent)
-                } finally {
-                    result?.close()
-                }
+            } catch (e : Exception) {
+                Log.e("QuizApp", e.toString())
+                val intent = Intent(p0, DownloadFailedDialog::class.java)
+                p0?.startActivity(intent)
+            } finally {
+                result?.close()
             }
+        } else if (airplaneModeStatus == 1) {
+            Log.i("BroadcastReceiver", "Airplane mode alert dialog")
+            val intent = Intent(p0, AirplaneModeDialog::class.java)
+            p0?.startActivity(intent)
         } else {
             Log.e("QuizApp", "No internet connection")
             alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + time, pendingIntent)
@@ -104,9 +111,7 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(findViewById(R.id.toolbar))
 
         if (Settings.Global.getInt(contentResolver, Settings.Global.AIRPLANE_MODE_ON, 0) == 1) {
-            val intent = Intent(this, AirplaneModeDialog::class.java)
-            intent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
-            startActivity(intent)
+            airplaneMode()
         }
 
         sharedPreference =  getSharedPreferences("DOWNLOAD_PREFERENCE", MODE_PRIVATE)
@@ -122,11 +127,11 @@ class MainActivity : AppCompatActivity() {
         intent.putExtra("url", url)
         intent.putExtra("time", time)
         pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT)
-        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + time, pendingIntent)
+        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), pendingIntent)
         Log.i("BroadcastReceiver", "Set download timer")
 
         val quizApp = QuizApp()
-        val repo : TopicRepository = quizApp.getTopicRepository()
+        val repo : TopicRepository = quizApp.getTopicRepository(this)
 
         val allTopics = repo.getAllTopics()
         val allTitles = arrayOfNulls<String>(allTopics.size)
@@ -163,9 +168,18 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         if (Settings.Global.getInt(contentResolver, Settings.Global.AIRPLANE_MODE_ON, 0) == 1) {
-            val intent = Intent(this, AirplaneModeDialog::class.java)
-            intent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
-            startActivity(intent)
+            airplaneMode()
         }
+    }
+
+    private fun airplaneMode() {
+        val alertDialogBuilder = AlertDialog.Builder(this)
+        alertDialogBuilder.setTitle("Airplane Mode On")
+        alertDialogBuilder.setMessage("Airplane mode is on. Would you like to go to settings to turn airplane mode off?")
+        alertDialogBuilder.setPositiveButton("Settings") { _: DialogInterface, _: Int -> this.startActivity(Intent(Settings.ACTION_SETTINGS)) }
+        alertDialogBuilder.setNegativeButton("Cancel") { _: DialogInterface, _: Int -> }
+
+        val alertDialog = alertDialogBuilder.create()
+        alertDialog.show()
     }
 }
