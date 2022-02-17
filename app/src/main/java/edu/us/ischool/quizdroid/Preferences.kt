@@ -17,7 +17,7 @@ class Preferences : AppCompatActivity() {
         supportActionBar?.setDisplayShowHomeEnabled(true)
 
 
-        val sharedPreference =  getSharedPreferences("PREFERENCE_NAME", MODE_PRIVATE)
+        val sharedPreference =  getSharedPreferences("DOWNLOAD_PREFERENCE", MODE_PRIVATE)
         var editor = sharedPreference.edit()
         val url = findViewById<TextView>(R.id.prefURL)
         val time = findViewById<TextView>(R.id.prefTime)
@@ -34,7 +34,7 @@ class Preferences : AppCompatActivity() {
             editor.putInt("downloadTime",time.text.toString().toInt())
             editor.commit()
             Log.i("Preferences", "Preference saved!")
-            Toast.makeText(this, "Preferences saved!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Preferences saved!\n ${url.text} \n ${time.text}", Toast.LENGTH_SHORT).show()
         }
     }
 }
