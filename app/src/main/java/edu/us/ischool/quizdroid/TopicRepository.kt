@@ -4,27 +4,25 @@ import java.lang.reflect.Type
 
 interface TopicRepository {
 
-    val externalFile : String
     val topicType: Type
-    val data : Array<Topic>
 
     // Create
-    fun addTopic(t : Topic) : Array<Topic>?
-    fun addQuiz(q : Quiz) : Array<Question>?
+    suspend fun addTopic(t : Topic) : Array<Topic>?
+    suspend fun addQuiz(q : Quiz) : Array<Question>?
 
     // Retrieve
-    fun getAllTopics() : Array<Topic>
-    fun getTopic(i : Int) : Topic
-    fun getAllQuizzes(i : Int) : Array<Quiz>
-    fun getQuiz(q : Int, i : Int) : Quiz
+    suspend fun getAllTopics() : Array<Topic>
+    suspend fun getTopic(i : Int) : Topic
+    suspend fun getAllQuizzes(i : Int) : Array<Quiz>
+    suspend fun getQuiz(q : Int, i : Int) : Quiz
 
     // Update
-    fun updateTopic(t : Topic) : Topic?
-    fun updateQuiz(q : Quiz) : Quiz?
+    suspend fun updateTopic(t : Topic) : Topic?
+    suspend fun updateQuiz(q : Quiz) : Quiz?
 
     // Delete
-    fun deleteTopic(i : Int) : Topic?
-    fun deleteQuiz(i : Int) : Quiz?
+    suspend fun deleteTopic(i : Int) : Topic?
+    suspend fun deleteQuiz(i : Int) : Quiz?
 }
 
 class Topic (

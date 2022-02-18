@@ -15,10 +15,12 @@ import android.widget.ListView
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
+import kotlinx.coroutines.*
 import java.io.BufferedReader
 import java.io.FileOutputStream
 import java.net.URL
 import kotlin.concurrent.thread
+import kotlin.coroutines.CoroutineContext
 
 lateinit var alarmManager : AlarmManager
 private lateinit var pendingIntent : PendingIntent
@@ -32,6 +34,7 @@ class IntentListener : BroadcastReceiver() {
     init {
         Log.i("BroadcastReceiver", "Created BroadcastReceiver")
     }
+
     override fun onReceive(p0: Context?, p1: Intent?) {
         if (sharedPreference.getString("URL", "") != "") {
             url = sharedPreference.getString("URL", "") as String
@@ -99,55 +102,71 @@ class IntentListener : BroadcastReceiver() {
     }
 }
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), CoroutineScope {
 
     private lateinit var arrayAdapter : ArrayAdapter<String>
+    private val job = Job()
+
+    override val coroutineContext: CoroutineContext
+        get() = job + Dispatchers.Main
+
+    override fun onDestroy() {
+        job.cancel()
+        super.onDestroy()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        val context = this
+        launch {
+            setSupportActionBar(findViewById(R.id.toolbar))
 
-        setSupportActionBar(findViewById(R.id.toolbar))
-
-        if (Settings.Global.getInt(contentResolver, Settings.Global.AIRPLANE_MODE_ON, 0) == 1) {
-            airplaneMode()
-        }
-
-        sharedPreference =  getSharedPreferences("DOWNLOAD_PREFERENCE", MODE_PRIVATE)
-        if (sharedPreference.getString("URL", "") != "") {
-            url = sharedPreference.getString("URL", "") as String
-        }
-        if (sharedPreference.getInt("downloadTime", 1) != 0) {
-            time = sharedPreference.getInt("downloadTime", 1) * 1000 * 60
-        }
-
-        alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(this, IntentListener::class.java)
-        intent.putExtra("url", url)
-        intent.putExtra("time", time)
-        pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT)
-        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), pendingIntent)
-        Log.i("BroadcastReceiver", "Set download timer")
-
-        val quizApp = QuizApp()
-        val repo : TopicRepository = quizApp.getTopicRepository(this)
-
-        val allTopics = repo.getAllTopics()
-        val allTitles = arrayOfNulls<String>(allTopics.size)
-        for (i in allTitles.indices) {
-            allTitles[i] = allTopics[i].title
-        }
-
-        val listView = findViewById<ListView>(R.id.listView)
-        arrayAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, allTitles)
-        listView.adapter = arrayAdapter
-        listView.setOnItemClickListener { _, _, pos, _ ->
-
-            val intent = Intent(this, TopicOverview::class.java).apply {
-                putExtra("topic", pos)
+            if (Settings.Global.getInt(contentResolver, Settings.Global.AIRPLANE_MODE_ON, 0) == 1) {
+                airplaneMode()
             }
-            startActivity(intent)
+
+            sharedPreference = getSharedPreferences("DOWNLOAD_PREFERENCE", MODE_PRIVATE)
+            if (sharedPreference.getString("URL", "https://tednewardsandbox.site44.com/questions.json") != "") {
+                url = sharedPreference.getString("URL", "https://tednewardsandbox.site44.com/questions.json") as String
+            }
+            if (sharedPreference.getInt("downloadTime", 1) != 0) {
+                time = sharedPreference.getInt("downloadTime", 1) * 1000 * 60
+            }
+
+            alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            val intent = Intent(context, IntentListener::class.java)
+            intent.putExtra("url", url)
+            intent.putExtra("time", time)
+            pendingIntent =
+                PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT)
+            alarmManager.setExactAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                System.currentTimeMillis(),
+                pendingIntent
+            )
+            Log.i("BroadcastReceiver", "Set download timer")
+
+            val quizApp = QuizApp()
+            val repo: TopicRepository = quizApp.getTopicRepository(context)
+
+            val allTopics = repo.getAllTopics()
+            val allTitles = arrayOfNulls<String>(allTopics.size)
+            for (i in allTitles.indices) {
+                allTitles[i] = allTopics[i].title
+            }
+
+            val listView = findViewById<ListView>(R.id.listView)
+            arrayAdapter = ArrayAdapter(context, android.R.layout.simple_list_item_1, allTitles)
+            listView.adapter = arrayAdapter
+            listView.setOnItemClickListener { _, _, pos, _ ->
+
+                val intent = Intent(context, TopicOverview::class.java).apply {
+                    putExtra("topic", pos)
+                }
+                startActivity(intent)
+            }
         }
+        setContentView(R.layout.activity_main)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {

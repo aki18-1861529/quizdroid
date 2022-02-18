@@ -2,10 +2,13 @@ package edu.us.ischool.quizdroid
 
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
+import android.content.Intent
 import android.content.SharedPreferences
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.*
+import java.io.BufferedReader
 import java.io.File
 import java.lang.reflect.Type
 import java.net.URL
@@ -13,80 +16,99 @@ import java.lang.Exception
 
 
 class MemoryTopicRepository(c : Context) : TopicRepository {
-    lateinit var topics : Array<Topic>
-    private val sharedPreference: SharedPreferences =  c.applicationContext.getSharedPreferences("DOWNLOAD_PREFERENCE", MODE_PRIVATE)
+    private val context : Context = c
+    private lateinit var topics : Array<Topic>
+    private val sharedPreference : SharedPreferences =  c.applicationContext.getSharedPreferences("DOWNLOAD_PREFERENCE", MODE_PRIVATE)
     private var url = "https://tednewardsandbox.site44.com/questions.json"
-    var resultString = ""
-
-//    init {
-//        if (sharedPreference.getString("URL", "") != "") {
-//            url = sharedPreference.getString("URL", "") as String
-//        }
-//        try {
-//            resultString = URL(url).readText()
-//        } catch (e: Exception) {
-//            Log.e("QuizApp", e.toString())
-//        }
-//        var editor = sharedPreference.edit()
-//        editor.putString("URL", url)
-//    }
-
-    override val externalFile : String
-        get() = File("/data/local/tmp/questions.json").readText()
+    private var resultString = ""
+    private lateinit var data : Array<Topic>
 
     override val topicType: Type
         get() = object : TypeToken<Array<Topic>>() {}.type
 
-    override val data: Array<Topic>
-        get() = Gson().fromJson(externalFile, topicType)
+    private suspend fun getData() = withContext(Dispatchers.IO) {
 
-    override fun getAllTopics() : Array<Topic> {
-        // data.forEachIndexed { idx, data -> Log.i("Topic", "> Item $idx:\n${data.title}") }
-        val topicArr : MutableList<Topic> = mutableListOf()
-        for (i in data.indices) {
-            val questions = data[i].questions.map { Quiz(it.text, it.answer, it.answers) }
-            topicArr.add(Topic(data[i].title, data[i].desc, questions.toTypedArray()))
+        if (sharedPreference.getString("URL", "https://tednewardsandbox.site44.com/questions.json") != "") {
+            url = sharedPreference.getString("URL", "https://tednewardsandbox.site44.com/questions.json") as String
         }
-        topics = topicArr.toTypedArray()
-        Log.i("Topics", topicArr.toTypedArray().toString())
-        return topics
+        try {
+            val path : String = context.filesDir.toString() + "/questions.json"
+            val bufferedReader : BufferedReader = File(path).bufferedReader()
+            resultString = bufferedReader.use { it.readText() }
+            data = Gson().fromJson(resultString, topicType)
+        } catch (e: Exception) {
+            try {
+                resultString = URL(url).readText()
+                var editor = sharedPreference.edit()
+                editor.putString("URL", url)
+                data = Gson().fromJson(resultString, topicType)
+            } catch (e2: Exception) {
+                Log.e("QuizApp", e.toString())
+                val intent = Intent(context, DownloadFailedDialog::class.java)
+                context?.startActivity(intent)
+            }
+        }
     }
 
-    override fun getTopic(i : Int) : Topic {
-        return data[i]
+    override suspend fun getAllTopics() : Array<Topic> = withContext(Dispatchers.IO) {
+        // data.forEachIndexed { idx, data -> Log.i("Topic", "> Item $idx:\n${data.title}") }
+        async {
+            getData()
+            val topicArr: MutableList<Topic> = mutableListOf()
+            for (i in data.indices) {
+                val questions = data[i].questions.map { Quiz(it.text, it.answer, it.answers) }
+                topicArr.add(Topic(data[i].title, data[i].desc, questions.toTypedArray()))
+            }
+            topics = topicArr.toTypedArray()
+            Log.i("Topics", topicArr.toTypedArray().toString())
+            return@async topics
+        }.await()
     }
 
-    override fun getAllQuizzes(i: Int): Array<Quiz> {
-        val questions = data[i].questions.map { Quiz(it.text, it.answer, it.answers) }
-        return questions.toTypedArray()
+    override suspend fun getTopic(i : Int) : Topic = withContext(Dispatchers.IO) {
+        async {
+            getData()
+            return@async data[i]
+        }.await()
     }
 
-    override fun getQuiz(q: Int, i : Int) : Quiz {
-        val questions = data[q].questions.map { Quiz(it.text, it.answer, it.answers) }
-        return questions[i]
+    override suspend fun getAllQuizzes(i: Int): Array<Quiz> = withContext(Dispatchers.IO) {
+        async {
+            getData()
+            val questions = data[i].questions.map { Quiz(it.text, it.answer, it.answers) }
+            return@async questions.toTypedArray()
+        }.await()
     }
 
-    override fun addTopic(t: Topic): Array<Topic>? {
+    override suspend fun getQuiz(q: Int, i : Int) : Quiz = withContext(Dispatchers.IO) {
+        async {
+            getData()
+            val questions = data[q].questions.map { Quiz(it.text, it.answer, it.answers) }
+            return@async questions[i]
+        }.await()
+    }
+
+    override suspend fun addTopic(t: Topic): Array<Topic>? {
         return null
     }
 
-    override fun addQuiz(q: Quiz): Array<Question>? {
+    override suspend fun addQuiz(q: Quiz): Array<Question>? {
         return null
     }
 
-    override fun deleteTopic(i: Int): Topic? {
+    override suspend fun deleteTopic(i: Int): Topic? {
         return null
     }
 
-    override fun deleteQuiz(i: Int): Quiz? {
+    override suspend fun deleteQuiz(i: Int): Quiz? {
         return null
     }
 
-    override fun updateTopic(t: Topic): Topic? {
+    override suspend fun updateTopic(t: Topic): Topic? {
         return null
     }
 
-    override fun updateQuiz(q: Quiz): Quiz? {
+    override suspend fun updateQuiz(q: Quiz): Quiz? {
         return null
     }
 }
