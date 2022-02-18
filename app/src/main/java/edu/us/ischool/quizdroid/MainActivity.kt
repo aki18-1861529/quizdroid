@@ -39,10 +39,9 @@ class IntentListener : BroadcastReceiver() {
         if (sharedPreference.getString("URL", "") != "") {
             url = sharedPreference.getString("URL", "") as String
         }
-        if (sharedPreference.getInt("downloadTime", 1) != 0) {
-            time = sharedPreference.getInt("downloadTime", 1) * 1000 * 60
+        if (sharedPreference.getInt("downloadTime", 10) != 0) {
+            time = sharedPreference.getInt("downloadTime", 10) * 1000 * 60
         }
-        Toast.makeText(p0, url, Toast.LENGTH_LONG).show()
         Log.i("BroadcastReceiver", "$url   $time")
 
         val airplaneModeStatus = Settings.Global.getInt(p0?.contentResolver, Settings.Global.AIRPLANE_MODE_ON, 0)
@@ -54,6 +53,7 @@ class IntentListener : BroadcastReceiver() {
         // Airplane mode on = 1
         // Airplane mode off = 0
         if (airplaneModeStatus == 0 && connectionStatus) {
+            Toast.makeText(p0, url, Toast.LENGTH_LONG).show()
             var result : BufferedReader? = null
             thread {
                 try {
@@ -84,6 +84,7 @@ class IntentListener : BroadcastReceiver() {
             p0?.startActivity(intent)
         } else {
             Log.e("QuizApp", "No internet connection")
+            Toast.makeText(p0, "Error: no signal to download questions", Toast.LENGTH_LONG).show()
             alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + time, pendingIntent)
         }
     }
@@ -129,8 +130,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
             if (sharedPreference.getString("URL", "https://tednewardsandbox.site44.com/questions.json") != "") {
                 url = sharedPreference.getString("URL", "https://tednewardsandbox.site44.com/questions.json") as String
             }
-            if (sharedPreference.getInt("downloadTime", 1) != 0) {
-                time = sharedPreference.getInt("downloadTime", 1) * 1000 * 60
+            if (sharedPreference.getInt("downloadTime", 10) != 0) {
+                time = sharedPreference.getInt("downloadTime", 10) * 1000 * 60
             }
 
             alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
